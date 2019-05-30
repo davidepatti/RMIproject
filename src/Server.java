@@ -1,7 +1,10 @@
 
 import java.net.MalformedURLException;
+import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 public class Server extends UnicastRemoteObject implements ServerInterface {
@@ -12,14 +15,24 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     public Server() throws RemoteException {
+        // if not local, specify the object port to avoid random assignation
+        super(1100);
     }
 
     public static void main(String[] args){
         try {
-            ServerInterface server = new Server();
-            Naming.rebind("calculator",server);
+            // if not localhost
+            System.setProperty("java.rmi.server.hostname","whitelodge.ns0.it");
+            Registry registry = LocateRegistry.getRegistry();
 
-        } catch (RemoteException | MalformedURLException e) {
+
+            ServerInterface server = new Server();
+           // Naming.rebind("calculator",server);
+            registry.bind("calculator",server);
+
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (AlreadyBoundException e) {
             e.printStackTrace();
         }
 
